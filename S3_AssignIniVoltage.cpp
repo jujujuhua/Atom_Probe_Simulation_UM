@@ -1,6 +1,11 @@
 #include "void S3_AssignIniVoltage.h"
 #include <iostream>
+#include <sstream>
+#include <fstream>
+#include <Eigen/Dense>
 using namespace std;
+using Eigen::MatrixXd;
+using namespace Eigen;
 
 void S3_AssignIniVoltage(){
 	double x0 = 0;
@@ -14,7 +19,61 @@ void S3_AssignIniVoltage(){
 	//basename='BCC_W_tip_20nm_011+112_11857+3882';
 	string FileNamePoints = basename + ".mat";
 	//FileNameSOIatoms=[basename '_SOI_Atom.mat'];
+	ifstream infile;
+	infile.open(basename);
+	double in = 0.0;
+	string line;
+	std::vector<string> v;
+	int i = 0;
+	while(getline(infile,line)){
+		v[i] = line;
+	}
 
-	//Points=importdata(FileNamePoints);
-	//SOI_Atoms=importdata(FileNameSOIatoms);
+	MatrixXd Points(v.size(),7);
+	MatrixXd VacuumPoints(v.size(),7);
+	int j = 0;
+	for(i = 0; i < v.size();i++){
+		stringstream ss;
+		ss << v[i];
+		for(int j = 0; j < 6; j ++){
+			ss >> Points(i,j);
+		}
+		Points(i,6) = (Points(i,3)!=0) ? 1 : 0 
+		}
+		if(Points(i,3) == 0){
+			VacuumPoints.row(j) = Points.row(j).array();
+		}
+	}
+
+	Matrix VoltageInVacuum(VacuumPoints.rows(),1);
+	VoltageInVacuum.fill(0);
+	
+	double x = 0, y = 0, z = 0;
+	double d2 = 0.0, dmin = 0.0;
+	for(i = 0; i < VoltageInVacuum.rows()){
+		x = VacuumPoints(i,0);
+		y = VacuumPoints(i,1);
+		z = VacuumPoints(i,2);
+
+		if (z > z0){
+			d2 = exp(x0-x,2)+exp(y0-y,2)+exp(z0-z,2);
+		}else{
+			d2 = exp(x0-x,2)+exp(y0-y,2)
+		}
+		dmin = exp(d2,0.5)-Radi;
+
+		VoltageInVacuum(i,0) = (Distance-dmin)*Voltage/Distance;
+		if(VoltageInVacuum(i,0) < 0){
+			VoltageInVacuum(i,0) = 0;
+		}
+
+	}	
+
+	for( i =0;i<VacuumPoints.rows();i++){
+		Points(VacuumPoints(i,5),6) = 1;
+	}
+
+save([basename '_iniVoltageAssigned9.5.mat'],'Points');
+	
+	
 }
