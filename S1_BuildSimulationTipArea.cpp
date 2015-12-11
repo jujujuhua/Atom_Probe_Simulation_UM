@@ -19,7 +19,8 @@ using namespace std;
 
 
 void S1_BuildSimulationTipArea(){
-	//bcc=BuildBCC(28,0.2741,0,0,9);
+
+	MatrixXd BuildBcc=BuildBCC(28,0.2741,0,0,9);
     RowVector3d vec1 =   ConvertToCartesianFromSpheric(118,57);
     RowVector3d vec2 = ConvertToCartesianFromSpheric(38,82);
 
@@ -67,6 +68,14 @@ void S1_BuildSimulationTipArea(){
     }    
 
     MatrixXd X = Points.leftCols(3);//  (Points.rows(),3);
+    for(int i = 0; i < X.rows();i++){
+
+        for(int j = 0 ; j < X.cols(); j++){
+            cout << X(i,j)<<" ";
+        }
+        cout << endl;
+    }
+
    	//DT=delaunayn(X);
     //[V,C] = voronoin(X);
 }
